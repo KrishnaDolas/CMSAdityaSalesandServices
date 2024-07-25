@@ -4,6 +4,7 @@ import ComplaintForm from '../Components/ComplaintForm';
 import LoginScreen from '../Components/Login';
 import CustomDrawerContent from './CustomDrawerContent';
 import ComplaintList from '../Front-Office/ComplaintList';
+import EditComplaint from '../Front-Office/Editcomplaint';
 
 const Drawer = createDrawerNavigator();
 
@@ -13,6 +14,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="ComplaintForm" component={ComplaintForm} />
       <Drawer.Screen name="LoginScreen" component={LoginScreen} />
       <Drawer.Screen name="ComplaintList" component={ComplaintList} />
+      <Drawer.Screen name="EditComplaint" component={EditComplaint} />
     </Drawer.Navigator>
   );
 };

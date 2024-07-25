@@ -1,6 +1,9 @@
+// ComplaintList.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import { runOnJS } from 'react-native-reanimated'; // Import runOnJS
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../Navigation/types'; // adjust the path as necessary
+import { runOnJS } from 'react-native-reanimated';
 
 interface Complaint {
   id: string;
@@ -53,6 +56,7 @@ const ComplaintList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     const loadComplaints = async () => {
@@ -61,18 +65,18 @@ const ComplaintList: React.FC = () => {
       try {
         const fetchedComplaints = await fetchComplaints();
         console.warn('Fetched Complaints:', fetchedComplaints);
-        runOnJS(setComplaints)(fetchedComplaints); // Use runOnJS for setting complaints
-        runOnJS(setApiError)(false); // Clear any previous errors
+        runOnJS(setComplaints)(fetchedComplaints);
+        runOnJS(setApiError)(false);
       } catch (error) {
         console.error('Error during complaints loading:', error);
-        runOnJS(setApiError)(true); // Set API error state
+        runOnJS(setApiError)(true);
       } finally {
-        runOnJS(setLoading)(false); // Ensure loading is set to false on the JS thread
+        runOnJS(setLoading)(false);
       }
     };
     loadComplaints();
   }, []);
-  
+
   const filteredComplaints = complaints.filter(complaint =>
     complaint.problem.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -84,7 +88,10 @@ const ComplaintList: React.FC = () => {
       <Text style={styles.cell}>{item.address}</Text>
       <Text style={styles.cell}>{item.problem}</Text>
       <Text style={styles.cell}>{item.date}</Text>
-      <TouchableOpacity style={styles.actionButton}>
+      <TouchableOpacity
+        style={styles.actionButton}
+        onPress={() => navigation.navigate('EditComplaint', { id: item.id })}
+      >
         <Image source={require('../assets/editicon.png')} style={styles.icon} />
       </TouchableOpacity>
     </View>
