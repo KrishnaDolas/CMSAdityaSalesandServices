@@ -1,5 +1,5 @@
 // types.ts
-export type UserRole = 'guest' | 'front-office' | 'back-office';
+export type UserRole = 'guest' | 'front-office' | 'back-office' | 'admin';
 
 export type RootStackParamList = {
   ComplaintList: undefined;

@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Button, ActivityIndicator, ScrollView, TouchableOpacity, Image } from 'react-native';
-import DateTimePicker, { Event as DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TextInput, Button, Alert, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 
-interface Complaint {
-  id: string;
-  address: string;
-  problem: string;
-  date: string;
-  photo: string;
-  processDate: string;
-  status: string;
+interface ComplaintDetails {
+  c_name: string;
+  c_contactno: string;
+  c_area: string;
+  complaint_for: string;
+  complaint: string;
+  c_description: string;
+  c_time: string;
+  c_image: string;
+  c_status: string;
 }
 
-const fetchComplaintDetails = async (id: string): Promise<Complaint | null> => {
+const fetchComplaintDetails = async (id: string): Promise<ComplaintDetails | null> => {
   try {
-    const response = await fetch(`https://ncpapi.beatsacademy.in/Details/${id}/`);
+    const response = await fetch(`https://baramatiapi.beatsacademy.in/complaintdetails/${id}/`, {
+      method: 'GET',
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -26,20 +30,60 @@ const fetchComplaintDetails = async (id: string): Promise<Complaint | null> => {
       throw new Error('API response status is not success');
     }
 
-    const productDetails = data.product_details;
-    const complaint: Complaint = {
-      id: productDetails.id?.toString() || '',
-      address: productDetails.address || '',
-      problem: productDetails.problem || '',
-      date: productDetails.date || '',
-      photo: productDetails.photo || '',
-      processDate: new Date().toISOString(), // Default to current date
-      status: '', // Default to empty string to let user choose
+    const complaintDetails = data.complaint_details || {};
+    return {
+      c_name: complaintDetails.c_name || '',
+      c_contactno: complaintDetails.c_contactno || '',
+      c_area: complaintDetails.c_area || '',
+      complaint_for: complaintDetails.complaint_for || '',
+      complaint: complaintDetails.complaint || '',
+      c_description: complaintDetails.c_description || '',
+      c_time: complaintDetails.c_time || '',
+      c_image: complaintDetails.c_image || '',
+      c_status: complaintDetails.c_status || 'inprocess',
     };
-    return complaint;
   } catch (error) {
     console.error('Error fetching complaint details:', error);
     return null;
+  }
+};
+
+const updateComplaint = async (id: string, updatedComplaint: ComplaintDetails): Promise<boolean> => {
+  try {
+    const formData = new FormData();
+    formData.append('c_name', updatedComplaint.c_name);
+    formData.append('c_contactno', updatedComplaint.c_contactno);
+    formData.append('c_area', updatedComplaint.c_area);
+    formData.append('complaint_for', updatedComplaint.complaint_for);
+    formData.append('complaint', updatedComplaint.complaint);
+    formData.append('c_description', updatedComplaint.c_description);
+    formData.append('c_time', updatedComplaint.c_time);
+    formData.append('c_status', updatedComplaint.c_status);
+
+    if (updatedComplaint.c_image) {
+      formData.append('c_image', {
+        uri: updatedComplaint.c_image, // Assuming c_image is a local file URI
+        type: 'image/jpeg', // Change based on the file type
+        name: 'image.jpg', // Change based on the file name
+      });
+    }
+
+    const response = await fetch(`https://baramatiapi.beatsacademy.in/updatecomplaint/${id}/`, {
+      method: 'PUT', // Changed to PUT method
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (data.status === 'success') {
+      Alert.alert('Success', 'Complaint updated successfully');
+      return true;
+    } else {
+      throw new Error(data.message || 'Failed to update complaint');
+    }
+  } catch (error) {
+    console.error('Error updating complaint:', error);
+    Alert.alert('Error', 'Failed to update complaint');
+    return false;
   }
 };
 
@@ -47,37 +91,31 @@ const EditComplaint: React.FC = () => {
   const route = useRoute();
   const { id } = route.params as { id: string };
 
-  const [complaint, setComplaint] = useState<Complaint | null>(null);
+  const [complaint, setComplaint] = useState<ComplaintDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [processDate, setProcessDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [status, setStatus] = useState<string>('');
+  const [status, setStatus] = useState<string>('inprocess');
 
   useEffect(() => {
     const loadComplaintDetails = async () => {
       setLoading(true);
       const fetchedComplaint = await fetchComplaintDetails(id);
       if (fetchedComplaint) {
-        console.log('Fetched complaint details:', fetchedComplaint);
         setComplaint(fetchedComplaint);
-        setProcessDate(new Date(fetchedComplaint.processDate));
-        setStatus(fetchedComplaint.status);
+        setStatus(fetchedComplaint.c_status);
       }
       setLoading(false);
     };
     loadComplaintDetails();
   }, [id]);
 
-  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    const currentDate = selectedDate || processDate;
-    setShowDatePicker(false);
-    setProcessDate(currentDate);
-  };
-
-  const handleSave = () => {
-    // Implement save functionality to update the processDate and status
-    console.log('Updated processDate:', processDate.toISOString().split('T')[0]);
-    console.log('Updated status:', status);
+  const handleUpdate = async () => {
+    if (complaint) {
+      const updatedComplaint = { ...complaint, c_status: status };
+      const success = await updateComplaint(id, updatedComplaint);
+      if (success) {
+        Alert.alert('Success', 'Complaint updated successfully');
+      }
+    }
   };
 
   if (loading) {
@@ -92,51 +130,77 @@ const EditComplaint: React.FC = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Edit Complaint</Text>
 
+      <Text style={styles.label}>Name</Text>
+      <TextInput
+        style={styles.input}
+        value={complaint.c_name}
+        editable={false}
+      />
+
+      <Text style={styles.label}>Contact Number</Text>
+      <TextInput
+        style={styles.input}
+        value={complaint.c_contactno}
+        editable={false}
+      />
+
       <Text style={styles.label}>Address</Text>
-      <Text style={styles.input}>{complaint.address}</Text>
+      <TextInput
+        style={styles.input}
+        value={complaint.c_area}
+        editable={false}
+      />
+
+      <Text style={styles.label}>Complaint For</Text>
+      <TextInput
+        style={styles.input}
+        value={complaint.complaint_for}
+        editable={false}
+      />
 
       <Text style={styles.label}>Problem</Text>
-      <Text style={styles.input}>{complaint.problem}</Text>
+      <TextInput
+        style={styles.input}
+        value={complaint.complaint}
+        editable={false}
+      />
+
+      <Text style={styles.label}>Description</Text>
+      <TextInput
+        style={styles.input}
+        value={complaint.c_description}
+        editable={false}
+      />
 
       <Text style={styles.label}>Date</Text>
-      <Text style={styles.input}>{complaint.date}</Text>
-
-      <Text style={styles.label}>Photo</Text>
-      <Image source={{ uri: complaint.photo }} style={styles.image} />
-
-      <Text style={styles.label}>Process Date</Text>
-      <TouchableOpacity
+      <TextInput
         style={styles.input}
-        onPress={() => setShowDatePicker(true)}
-      >
-        <Text>{processDate.toISOString().split('T')[0]}</Text>
-      </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          value={processDate}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
+        value={complaint.c_time}
+        editable={false}
+      />
+
+      <Text style={styles.label}>Image</Text>
+      {complaint.c_image ? (
+        <Image
+          source={{ uri: complaint.c_image }}
+          style={styles.image}
+          resizeMode="cover"
         />
+      ) : (
+        <Text>No image available</Text>
       )}
 
       <Text style={styles.label}>Status</Text>
-      <View style={styles.statusContainer}>
-        <TouchableOpacity
-          style={[styles.statusButton, status === 'inprocess' && styles.inprocess]}
-          onPress={() => setStatus('inprocess')}
-        >
-          <Text style={[styles.statusText, status === 'inprocess' && styles.inprocessText]}>In Process</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.statusButton, status === 'done' && styles.done]}
-          onPress={() => setStatus('done')}
-        >
-          <Text style={[styles.statusText, status === 'done' && styles.doneText]}>Done</Text>
-        </TouchableOpacity>
-      </View>
+      <Picker
+        selectedValue={status}
+        style={styles.picker}
+        onValueChange={(itemValue) => setStatus(itemValue)}
+      >
+        <Picker.Item label="In Process" value="inprocess" />
+        <Picker.Item label="Done" value="done" />
+      </Picker>
 
-      <Button title="Save" onPress={handleSave} />
+      <Button title="Update Complaint" onPress={handleUpdate} />
     </ScrollView>
   );
 };
@@ -146,19 +210,18 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
-    color : '#000'
   },
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
-    color : '#000'
+    color: '#000'
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-    color : '#000'
+    color: '#000'
   },
   input: {
     borderWidth: 1,
@@ -166,46 +229,22 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
-    color : '#000'
+    backgroundColor: '#f9f9f9',
+    color: '#000'
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 20,
+    backgroundColor: '#f9f9f9',
   },
   image: {
     width: '100%',
     height: 200,
-    resizeMode: 'cover',
+    borderRadius: 10,
     marginBottom: 20,
-    color : '#000'
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    color : '#000'
-  },
-  statusButton: {
-    flex: 1,
-    padding: 15,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-    marginHorizontal: 5,
-    color : '#000'
-  },
-  inprocess: {
-    backgroundColor: 'violet',
-  },
-  done: {
-    backgroundColor: 'green',
-  },
-  statusText: {
-    fontWeight: 'bold',
-    color : '#000'
-  },
-  inprocessText: {
-    color: 'white',
-  },
-  doneText: {
-    color: 'white',
   },
   errorText: {
     color: 'red',

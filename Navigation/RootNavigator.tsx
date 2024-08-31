@@ -1,6 +1,6 @@
-// UserRoleContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { UserRole } from './types'; // Import the UserRole type
+import React, { createContext, useContext, ReactNode } from 'react';
+
+export type UserRole = 'guest' | 'front-office' | 'back-office' | 'admin';
 
 interface UserRoleContextProps {
   userRole: UserRole;
@@ -10,7 +10,7 @@ interface UserRoleContextProps {
 const UserRoleContext = createContext<UserRoleContextProps | undefined>(undefined);
 
 export const UserRoleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [userRole, setUserRole] = useState<UserRole>('guest'); // Default role is 'guest'
+  const [userRole, setUserRole] = React.useState<UserRole>('guest');
 
   return (
     <UserRoleContext.Provider value={{ userRole, setUserRole }}>

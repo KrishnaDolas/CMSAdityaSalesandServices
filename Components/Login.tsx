@@ -1,26 +1,83 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../Navigation/types'; // Correct path
+import { useUserRole } from '../Navigation/RootNavigator'; // Adjust the import path as needed
+
+type UserRole = 'guest' | 'front-office' | 'back-office';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [profile, setProfile] = useState('Admin'); // Default profile selection
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [profile, setProfile] = useState<UserRole>('front-office');
+  const [frontOffice, setFrontOffice] = useState(1);
+  const [backOffice, setBackOffice] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { setUserRole } = useUserRole(); // Hook for setting user role
 
-  const profileOptions = [
-    { id: '1', label: 'Front-Office', value: 'Admin' },
-    { id: '2', label: 'Back-Office', value: 'Super Admin' },
+  const profileOptions: { id: string; label: string; value: UserRole }[] = [
+    { id: '1', label: 'Front-Office', value: 'front-office' },
+    { id: '2', label: 'Back-Office', value: 'back-office' },
   ];
 
-  const handleProfileChange = (value: string) => {
+  const handleProfileChange = (value: UserRole) => {
     setProfile(value);
+    if (value === 'front-office') {
+      setFrontOffice(1);
+      setBackOffice(0);
+    } else if (value === 'back-office') {
+      setFrontOffice(0);
+      setBackOffice(1);
+    }
   };
 
-  const handleSignIn = () => {
-    const type_admin = profile === 'Front-Office' ? 1 : 0;
-    const type_superadmin = profile === 'Back-Office' ? 1 : 0;
-  };
+  const handleSignIn = async () => {
+    try {
+        const response = await fetch('https://baramatiapi.beatsacademy.in/complaintlogin/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username,
+                password,
+                front_office: frontOffice,
+                back_office: backOffice,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            await AsyncStorage.setItem('admin_ID', data.admin_ID.toString());
+            await AsyncStorage.setItem('office', data.office);
+            await AsyncStorage.setItem('userRole', profile);
+
+            // Update user role in context
+            setUserRole(profile);
+
+            // Reset the navigation stack to re-render the drawer
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'ComplaintForm' }], // Reset to a root screen
+            });
+
+            // Navigate to ComplaintList after resetting the drawer
+            if (profile === 'front-office') {
+                navigation.navigate('ComplaintList');
+            }
+        } else {
+            Alert.alert('Login Failed', data.message || 'An error occurred. Please try again.');
+        }
+    } catch (error) {
+        Alert.alert('Login Failed', 'An error occurred. Please try again.');
+    }
+};
+
+
 
   return (
     <View style={styles.container}>
@@ -49,7 +106,7 @@ const Login: React.FC = () => {
           secureTextEntry={!showPassword}
         />
         <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-          {/* <AntDesign name={showPassword ? "eye" : "eyeo"} size={25} color="black" /> */}
+          {/* Eye icon implementation */}
         </TouchableOpacity>
       </View>
       <TouchableOpacity>
@@ -159,19 +216,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     paddingVertical: 10,
     paddingHorizontal: 20,
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 25,
-    backgroundColor: '#fff',
+    alignItems: 'center',
   },
   radioButtonSelected: {
-    backgroundColor: '#00f',
+    backgroundColor: '#008CBA',
+    borderColor: '#008CBA',
   },
   radioButtonText: {
     color: '#333',
   },
   button: {
-    backgroundColor: '#ff8c00',
+    backgroundColor: '#008CBA',
     padding: 15,
     borderRadius: 25,
     alignItems: 'center',
@@ -179,7 +237,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
   },
 });
 

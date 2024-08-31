@@ -18,8 +18,9 @@ import {
   ImagePickerResponse,
 } from 'react-native-image-picker';
 import DateTimePicker, { Event as DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import { Notifications } from 'react-native-notifications';
+
 
 const ComplaintForm = () => {
   const [fileUri, setFileUri] = useState<string | undefined>(undefined);
@@ -31,6 +32,8 @@ const ComplaintForm = () => {
   const [problem, setProblem] = useState<string>('');
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [complaintFor, setComplaintFor] = useState<string>('water'); // Default value
+  const [description, setDescription] = useState<string>('');
 
   const requestLocationPermission = async () => {
     try {
@@ -100,14 +103,15 @@ const ComplaintForm = () => {
     const formattedDate = date!.toISOString().split('T')[0];
 
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('contactno', contactNo);
-    formData.append('address', address);
-    formData.append('problem', problem);
-    formData.append('date', formattedDate);
+    formData.append('c_name', name);
+    formData.append('c_contactno', contactNo);
+    formData.append('c_area', address);
+    formData.append('complaint', problem);
+    formData.append('complaint_for', complaintFor);
+    formData.append('c_time', formattedDate);
 
     if (fileUri) {
-      formData.append('photo', {
+      formData.append('c_image', {
         uri: fileUri,
         type: 'image/jpeg',
         name: 'complaint_image.jpg',
@@ -115,7 +119,7 @@ const ComplaintForm = () => {
     }
 
     const axiosInstance = axios.create({
-      baseURL: 'https://ncpapi.beatsacademy.in/',
+      baseURL: 'https://baramatiapi.beatsacademy.in/',
       timeout: 10000,
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -161,25 +165,17 @@ const ComplaintForm = () => {
     });
 
     try {
-      const response = await axiosInstance.post('createPeopleIssue/', formData);
+      const response = await axiosInstance.post('addcomplaint/', formData);  // Ensure the endpoint is correct
       console.log('Form data sent successfully:', response.data);
       Alert.alert('Success', 'Your complaint has been submitted successfully.');
 
-      Notifications.postLocalNotification({
-        identifier: 'complaintNotification',
-        title: 'Complaint Submitted',
-        body: 'Thank you for your complaint. Your query will be resolved soon.',
-        sound: 'default',
-        badge: 1,
-        payload: {},
-        type: 'complaint',
-        thread: 'complaintThread',
-      });
-
+      // Reset form state
       setName('');
       setContactNo('');
       setAddress('');
       setProblem('');
+      setComplaintFor('water');  // Reset to default value
+      setDescription('');
       setDate(undefined);
       setFileUri(undefined);
       setLatitude(undefined);
@@ -234,51 +230,75 @@ const ComplaintForm = () => {
           placeholder="Enter your address"
         />
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={handleGetLocation} style={styles.button}>
-            <Text style={styles.buttonText}>Get Location</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleOpenMaps} style={styles.button}>
-            <Text style={styles.buttonText}>Open in Maps</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.label}>Complaint For:</Text>
+        <Picker
+          selectedValue={complaintFor}
+          style={styles.picker}
+          onValueChange={(itemValue: string) => setComplaintFor(itemValue)}
+        >
+          <Picker.Item label="Water" value="water" />
+          <Picker.Item label="Electricity" value="electricity" />
+          <Picker.Item label="Sanitation" value="sanitation" />
+        </Picker>
 
         <Text style={styles.label}>Problem:</Text>
         <TextInput
           style={styles.input}
           value={problem}
           onChangeText={setProblem}
-          placeholder="Describe your problem"
+          placeholder="Describe the problem"
+          multiline
+        />
+
+        <Text style={styles.label}>Description:</Text>
+        <TextInput
+          style={styles.input}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Provide additional details (optional)"
+          multiline
         />
 
         <Text style={styles.label}>Date:</Text>
+        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <TextInput
+            style={styles.input}
+            value={date ? date.toDateString() : 'Select date'}
+            editable={false}
+          />
+        </TouchableOpacity>
         {showDatePicker && (
           <DateTimePicker
             value={date || new Date()}
             mode="date"
             display="default"
             onChange={(event: DateTimePickerEvent, selectedDate?: Date) => {
+              setShowDatePicker(false);
               if (selectedDate) {
                 setDate(selectedDate);
               }
-              setShowDatePicker(false);
             }}
           />
         )}
-        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.button}>
-          <Text style={styles.buttonText}>Select Date</Text>
-        </TouchableOpacity>
 
-        {fileUri && (
-          <Image source={{ uri: fileUri }} style={styles.imagePreview} />
-        )}
-
+        <Text style={styles.label}>Upload Image:</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleChooseFile} style={styles.button}>
             <Text style={styles.buttonText}>Choose Image</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleCaptureImage} style={styles.button}>
             <Text style={styles.buttonText}>Capture Image</Text>
+          </TouchableOpacity>
+        </View>
+
+        {fileUri && <Image source={{ uri: fileUri }} style={styles.imagePreview} />}
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={handleGetLocation} style={styles.button}>
+            <Text style={styles.buttonText}>Get Location</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenMaps} style={styles.button}>
+            <Text style={styles.buttonText}>Open in Maps</Text>
           </TouchableOpacity>
         </View>
 
@@ -293,92 +313,108 @@ const ComplaintForm = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 16,
+    padding: 20,
     backgroundColor: '#fff',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    color : '#000'
   },
   logo: {
     width: 100,
     height: 100,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginVertical: 8,
+    marginTop: 10,
+    color : '#000'
   },
   paragraph: {
     fontSize: 16,
-    marginVertical: 8,
+    marginBottom: 20,
     color: '#333',
   },
   steps: {
-    marginVertical: 16,
+    marginBottom: 20,
+    color : '#000'
   },
   stepsText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
+    color : '#000'
   },
   step: {
-    fontSize: 14,
-    marginBottom: 4,
+    fontSize: 16,
+    marginBottom: 5,
+    color : '#000'
   },
   blackText: {
     color: '#000',
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
+    color : '#000'
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 5,
+    color : '#000'
   },
   input: {
-    borderWidth: 1,
+    height: 40,
     borderColor: '#ccc',
-    borderRadius: 4,
-    padding: 8,
-    fontSize: 14,
-    marginBottom: 12,
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 15,
+    color : '#000'
+  },
+  picker: {
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 15,
+    color : '#000'
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 8,
+    marginBottom: 20,
+    color : '#000'
   },
   button: {
     backgroundColor: '#007BFF',
     padding: 10,
-    borderRadius: 4,
+    borderRadius: 5,
     flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: 5,
     alignItems: 'center',
+    color : '#000'
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
+    color : '#000'
   },
   imagePreview: {
-    width: '100%',
-    height: 200,
-    marginVertical: 8,
-    borderRadius: 4,
-    borderColor: '#ccc',
-    borderWidth: 1,
+    width: 100,
+    height: 100,
+    marginVertical: 10,
   },
   submitButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#28A745',
     padding: 15,
-    borderRadius: 4,
+    borderRadius: 5,
     alignItems: 'center',
+    color : '#000'
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });
