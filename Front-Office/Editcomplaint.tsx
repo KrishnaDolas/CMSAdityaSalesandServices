@@ -169,7 +169,8 @@ const EditComplaint: React.FC = () => {
       <TextInput
         style={styles.input}
         value={complaint.c_description}
-        editable={false}
+        editable={true}  // Make the description editable
+        onChangeText={(text) => setComplaint({ ...complaint, c_description: text })} // Update state on text change
       />
 
       <Text style={styles.label}>Date</Text>
@@ -196,8 +197,9 @@ const EditComplaint: React.FC = () => {
         style={styles.picker}
         onValueChange={(itemValue) => setStatus(itemValue)}
       >
-        <Picker.Item label="In Process" value="inprocess" />
-        <Picker.Item label="Done" value="done" />
+        <Picker.Item label="Work Complete" value="WorkComplete" />
+        <Picker.Item label="Work In Progress" value="WorkInProgress" />
+        <Picker.Item label="Work Incomplete" value="WorkIncomplete" />
       </Picker>
 
       <Button title="Update Complaint" onPress={handleUpdate} />
@@ -215,13 +217,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#000'
+    color: '#000',
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#000'
+    color: '#000',
   },
   input: {
     borderWidth: 1,
@@ -230,7 +232,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
     backgroundColor: '#f9f9f9',
-    color: '#000'
+    color: '#000',
   },
   picker: {
     height: 50,
