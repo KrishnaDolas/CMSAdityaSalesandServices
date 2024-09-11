@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
+    color:'#000'
   },
   heading: {
     fontSize: 24,
@@ -241,6 +242,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginBottom: 20,
     backgroundColor: '#f9f9f9',
+    color:'#000'
   },
   image: {
     width: '100%',

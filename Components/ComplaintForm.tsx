@@ -308,19 +308,23 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
+    color:'#000'
   },
   header: {
     alignItems: 'center',
     marginBottom: 20,
+    color:'#000'
   },
   logo: {
     width: 100,
     height: 100,
     marginBottom: 10,
+    color:'#000'
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color:'#000'
   },
   paragraph: {
     marginBottom: 15,
@@ -330,11 +334,13 @@ const styles = StyleSheet.create({
   },
   steps: {
     marginBottom: 15,
+    color:'#000'
   },
   stepsText: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
+    color:'#000'
   },
   blackText: {
     color: '#333',
@@ -342,14 +348,17 @@ const styles = StyleSheet.create({
   step: {
     fontSize: 14,
     marginBottom: 5,
+    color:'#000'
   },
   inputContainer: {
     marginBottom: 15,
+    color:'#000'
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
+    color:'#000'
   },
   input: {
     height: 40,
@@ -359,6 +368,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 15,
     backgroundColor: '#f9f9f9',
+    color:'#000'
   },
   picker: {
     height: 50,
@@ -372,6 +382,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
+    color:'#000'
   },
   button: {
     flex: 1,
@@ -381,6 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginHorizontal: 5,
+    color:'#000'
   },
   buttonText: {
     color: '#fff',
@@ -392,12 +404,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 15,
     resizeMode: 'contain',
+    color:'#000'
   },
   submitButton: {
     backgroundColor: '#28a745',
     paddingVertical: 15,
     borderRadius: 5,
     alignItems: 'center',
+    color:'#000'
   },
   submitButtonText: {
     color: '#fff',
@@ -413,9 +427,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#f9f9f9',
     marginBottom: 15,
+    color:'#000'
   },
   dateButtonText: {
     fontSize: 16,
+    color:'#000'
   },
   locationText: {
     marginTop: 5,
