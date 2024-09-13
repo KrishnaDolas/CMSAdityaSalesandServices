@@ -18,7 +18,7 @@ import {
   ImagePickerResponse,
 } from 'react-native-image-picker';
 import DateTimePicker, { Event as DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
+import { Dropdown } from 'react-native-element-dropdown';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 const ComplaintForm = () => {
@@ -32,6 +32,13 @@ const ComplaintForm = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [complaintFor, setComplaintFor] = useState<string>('water'); // Default value
+  const [complaintOptions] = useState([
+    { label: 'Water', value: 'water' },
+    { label: 'Light', value: 'light' },
+    { label: 'Road', value: 'road' },
+    { label: 'Pollution', value: 'pollution' },
+    { label: 'Security', value: 'security' },
+  ]); // Dropdown options
 
   const requestLocationPermission = async () => {
     try {
@@ -149,21 +156,8 @@ const ComplaintForm = () => {
       }
     );
 
-    axiosInstance.interceptors.response.use(undefined, function axiosRetryInterceptor(err) {
-      const config = err.config;
-      if (err.message === 'Network Error' && !err.response) {
-        if (!config.retryCount || config.retryCount >= 3) {
-          config.retryCount = 0;
-          throw err;
-        }
-        config.retryCount += 1;
-        return new Promise((resolve) => setTimeout(() => resolve(axiosInstance(config)), 1000));
-      }
-      throw err;
-    });
-
     try {
-      const response = await axiosInstance.post('addcomplaint/', formData);  // Ensure the endpoint is correct
+      const response = await axiosInstance.post('addcomplaint/', formData);
       console.log('Form data sent successfully:', response.data);
       Alert.alert('Success', 'Your complaint has been submitted successfully.');
 
@@ -172,7 +166,7 @@ const ComplaintForm = () => {
       setContactNo('');
       setAddress('');
       setProblem('');
-      setComplaintFor('water');  // Reset to default value
+      setComplaintFor('water');
       setDate(undefined);
       setFileUri(undefined);
       setLatitude(undefined);
@@ -191,15 +185,8 @@ const ComplaintForm = () => {
       </View>
 
       <Text style={styles.paragraph}>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsa neque ducimus dolorum soluta modi deserunt earum debitis iure fuga eaque amet distinctio rem reiciendis, quas in ratione laborum provident iusto nostrum id optio? Molestias nulla assumenda ad dignissimos illo magni laborum. Exercitationem eum nemo in, quia odio inventore ab sit quos consectetur ipsa rem, debitis velit eveniet est optio fugiat. Ut ipsum voluptates quos!
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsa neque ducimus dolorum soluta modi deserunt earum debitis iure fuga eaque amet distinctio rem reiciendis, quas in ratione laborum provident iusto.
       </Text>
-
-      <View style={styles.steps}>
-        <Text style={[styles.stepsText, styles.blackText]}>Submit, Track, and Receive Updates: Our 3-Step Process</Text>
-        <Text style={[styles.step, styles.blackText]}>Step 1: Submit Your Complaint</Text>
-        <Text style={[styles.step, styles.blackText]}>Step 2: Track the Status of Your Complaint</Text>
-        <Text style={[styles.step, styles.blackText]}>Step 3: Receive Updates and Resolutions</Text>
-      </View>
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Name:</Text>
@@ -208,6 +195,7 @@ const ComplaintForm = () => {
           value={name}
           onChangeText={setName}
           placeholder="Enter your name"
+          placeholderTextColor="#000"
         />
 
         <Text style={styles.label}>Contact No:</Text>
@@ -217,6 +205,7 @@ const ComplaintForm = () => {
           onChangeText={setContactNo}
           placeholder="Enter your contact number"
           keyboardType="phone-pad"
+          placeholderTextColor="#000"
         />
 
         <Text style={styles.label}>Address:</Text>
@@ -225,20 +214,24 @@ const ComplaintForm = () => {
           value={address}
           onChangeText={setAddress}
           placeholder="Enter your address"
+          placeholderTextColor="#000"
         />
 
         <Text style={styles.label}>Complaint For:</Text>
-        <Picker
-          selectedValue={complaintFor}
-          style={styles.picker}
-          onValueChange={(itemValue: string) => setComplaintFor(itemValue)}
-        >
-          <Picker.Item label="Water" value="Water" />
-          <Picker.Item label="Light" value="Light" />
-          <Picker.Item label="Road" value="Road" />
-          <Picker.Item label="Pollution" value="Pollution" />
-          <Picker.Item label="Security" value="Security" />
-        </Picker>
+        <Dropdown
+  style={styles.dropdown}
+  data={complaintOptions}
+  labelField="label"
+  valueField="value"
+  placeholder="Select Complaint For"
+  placeholderStyle={styles.dropdownPlaceholder}  // Add placeholder text style
+  selectedTextStyle={styles.dropdownSelectedText}  // Style for selected item
+  value={complaintFor}
+  onChange={(item) => setComplaintFor(item.value)}
+  itemTextStyle={styles.dropdownItemText}  // Style for dropdown items
+/>
+
+
 
         <Text style={styles.label}>Problem:</Text>
         <TextInput
@@ -284,7 +277,7 @@ const ComplaintForm = () => {
         <Text style={styles.label}>Upload Image:</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleChooseFile} style={styles.button}>
-            <Text style={styles.buttonText}>Choose Image</Text>
+            <Text style={styles.buttonText}>Choose File</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleCaptureImage} style={styles.button}>
             <Text style={styles.buttonText}>Capture Image</Text>
@@ -292,11 +285,14 @@ const ComplaintForm = () => {
         </View>
 
         {fileUri && (
-          <Image source={{ uri: fileUri }} style={styles.imagePreview} />
+          <Image
+            source={{ uri: fileUri }}
+            style={styles.imagePreview}
+          />
         )}
 
         <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>Submit</Text>
+          <Text style={styles.submitButtonText}>Submit Complaint</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -309,6 +305,23 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
     color:'#000'
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    borderRadius: 4,
+    marginBottom: 16,
+    color: '#000',
+  },
+  dropdownPlaceholder: {
+    color: '#000',  // Black color for placeholder
+  },
+  dropdownSelectedText: {
+    color: '#000',  // Black color for selected text
+  },
+  dropdownItemText: {
+    color: '#000',  // Black color for dropdown items
   },
   header: {
     alignItems: 'center',

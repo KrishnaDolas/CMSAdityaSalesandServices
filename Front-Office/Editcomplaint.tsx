@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TextInput, Button, Alert, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
+import { Dropdown } from 'react-native-element-dropdown';
 
 interface ComplaintDetails {
   c_name: string;
@@ -169,8 +169,8 @@ const EditComplaint: React.FC = () => {
       <TextInput
         style={styles.input}
         value={complaint.c_description}
-        editable={true}  // Make the description editable
-        onChangeText={(text) => setComplaint({ ...complaint, c_description: text })} // Update state on text change
+        editable={true}
+        onChangeText={(text) => setComplaint({ ...complaint, c_description: text })}
       />
 
       <Text style={styles.label}>Date</Text>
@@ -192,17 +192,26 @@ const EditComplaint: React.FC = () => {
       )}
 
       <Text style={styles.label}>Status</Text>
-      <Picker
-        selectedValue={status}
-        style={styles.picker}
-        onValueChange={(itemValue) => setStatus(itemValue)}
-      >
-        <Picker.Item label="Work Complete" value="WorkComplete" />
-        <Picker.Item label="Work In Progress" value="WorkInProgress" />
-        <Picker.Item label="Work Incomplete" value="WorkIncomplete" />
-      </Picker>
+      <Dropdown
+        style={styles.dropdown}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        containerStyle={styles.dropdownContainer}
+        labelField="label"
+        valueField="value"
+        data={[
+          { label: 'Work Complete', value: 'WorkComplete' },
+          { label: 'Work In Progress', value: 'WorkInProgress' },
+          { label: 'Work Incomplete', value: 'WorkIncomplete' },
+        ]}
+        value={status}
+        onChange={(item) => setStatus(item.value)}
+        placeholder="Select status"
+      />
 
-      <Button title="Update Complaint" onPress={handleUpdate} />
+      <View style={styles.buttonContainer}>
+        <Button title="Update Complaint" onPress={handleUpdate} />
+      </View>
     </ScrollView>
   );
 };
@@ -212,7 +221,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
-    color:'#000'
   },
   heading: {
     fontSize: 24,
@@ -235,20 +243,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     color: '#000',
   },
-  picker: {
+  dropdown: {
     height: 50,
-    width: '100%',
     borderWidth: 1,
     borderColor: '#ccc',
-    marginBottom: 20,
     backgroundColor: '#f9f9f9',
-    color:'#000'
+    marginBottom: 60, // Adding space below the dropdown
+    paddingBottom: 10, // Extra padding at the bottom if needed
+  },
+  placeholderStyle: {
+    color: '#000',
+  },
+  selectedTextStyle: {
+    color: '#000',
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 20, // Adding space below the dropdown
+    paddingBottom: 10, // Extra padding at the bottom if needed
   },
   image: {
     width: '100%',
     height: 200,
     borderRadius: 10,
     marginBottom: 20,
+  },
+  buttonContainer: {
+    marginTop: 20, // Space for the button
+    marginBottom: 20, 
   },
   errorText: {
     color: 'red',
