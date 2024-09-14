@@ -8,9 +8,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  Linking,
 } from 'react-native';
-import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
 import {
   launchImageLibrary,
@@ -19,12 +17,9 @@ import {
 } from 'react-native-image-picker';
 import DateTimePicker, { Event as DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Dropdown } from 'react-native-element-dropdown';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 const ComplaintForm = () => {
   const [fileUri, setFileUri] = useState<string | undefined>(undefined);
-  const [latitude, setLatitude] = useState<number | undefined>(undefined);
-  const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [name, setName] = useState<string>('');
   const [contactNo, setContactNo] = useState<string>('');
   const [address, setAddress] = useState<string>('');
@@ -40,21 +35,6 @@ const ComplaintForm = () => {
     { label: 'Security', value: 'security' },
   ]); // Dropdown options
 
-  const requestLocationPermission = async () => {
-    try {
-      const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-      if (result === RESULTS.GRANTED) {
-        return true;
-      } else {
-        Alert.alert('Permission Denied', 'Location permission is required to fetch your current location.');
-        return false;
-      }
-    } catch (error) {
-      console.error('Error requesting location permission:', error);
-      return false;
-    }
-  };
-
   const handleChooseFile = () => {
     launchImageLibrary({ mediaType: 'mixed' }, (response: ImagePickerResponse) => {
       if (response.assets && response.assets.length > 0) {
@@ -69,34 +49,6 @@ const ComplaintForm = () => {
         setFileUri(response.assets[0].uri);
       }
     });
-  };
-
-  const handleGetLocation = async () => {
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) return;
-
-    Geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLatitude(latitude);
-        setLongitude(longitude);
-        Alert.alert('Location', `Latitude: ${latitude}, Longitude: ${longitude}`);
-      },
-      (error) => {
-        console.error('Error fetching location:', error);
-        Alert.alert('Error', 'Failed to fetch location.');
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
-  };
-
-  const handleOpenMaps = () => {
-    if (latitude && longitude) {
-      const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-      Linking.openURL(url).catch((err) => Alert.alert('Error', 'Failed to open Google Maps'));
-    } else {
-      Alert.alert('Location Error', 'No location data available');
-    }
   };
 
   const handleSubmit = async () => {
@@ -131,31 +83,6 @@ const ComplaintForm = () => {
       },
     });
 
-    axiosInstance.interceptors.request.use((config) => {
-      console.log('Request config:', config);
-      return config;
-    });
-
-    axiosInstance.interceptors.response.use(
-      (response) => {
-        console.log('Response:', response);
-        return response;
-      },
-      (error) => {
-        console.error('Response Error:', error);
-        if (error.response) {
-          console.error('Response Data:', error.response.data);
-          console.error('Response Status:', error.response.status);
-          console.error('Response Headers:', error.response.headers);
-        } else if (error.request) {
-          console.error('Request Error:', error.request);
-        } else {
-          console.error('Error Message:', error.message);
-        }
-        return Promise.reject(error);
-      }
-    );
-
     try {
       const response = await axiosInstance.post('addcomplaint/', formData);
       console.log('Form data sent successfully:', response.data);
@@ -169,8 +96,6 @@ const ComplaintForm = () => {
       setComplaintFor('water');
       setDate(undefined);
       setFileUri(undefined);
-      setLatitude(undefined);
-      setLongitude(undefined);
     } catch (error: any) {
       console.error('Error submitting form:', error);
       Alert.alert('Error', `An error occurred while submitting your complaint: ${error.message}`);
@@ -181,14 +106,14 @@ const ComplaintForm = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Image source={require('../assets/ncp.png')} style={styles.logo} />
-        <Text style={styles.headerText}>NCP Complaint Management System</Text>
+        <Text style={styles.headerText}>Complaint Management System</Text>
       </View>
 
       <Text style={styles.paragraph}>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsa neque ducimus dolorum soluta modi deserunt earum debitis iure fuga eaque amet distinctio rem reiciendis, quas in ratione laborum provident iusto.
+        The Complaint Management System (CMS) by the Nationalist Congress Party (NCP) simplifies addressing civic issues by enabling citizens to lodge complaints about infrastructure, services, or other concerns. It improves communication between the public and government, fostering transparency and accountability. This system ensures quicker responses and amplifies citizen feedback, leading to better governance and public services.
       </Text>
 
-      <View style={styles.inputContainer}>
+      <View style={styles.formContainer}>
         <Text style={styles.label}>Name:</Text>
         <TextInput
           style={styles.input}
@@ -219,27 +144,26 @@ const ComplaintForm = () => {
 
         <Text style={styles.label}>Complaint For:</Text>
         <Dropdown
-  style={styles.dropdown}
-  data={complaintOptions}
-  labelField="label"
-  valueField="value"
-  placeholder="Select Complaint For"
-  placeholderStyle={styles.dropdownPlaceholder}  // Add placeholder text style
-  selectedTextStyle={styles.dropdownSelectedText}  // Style for selected item
-  value={complaintFor}
-  onChange={(item) => setComplaintFor(item.value)}
-  itemTextStyle={styles.dropdownItemText}  // Style for dropdown items
-/>
-
-
+          style={styles.dropdown}
+          data={complaintOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="Select Complaint For"
+          placeholderStyle={styles.dropdownPlaceholder}
+          selectedTextStyle={styles.dropdownSelectedText}
+          value={complaintFor}
+          onChange={(item) => setComplaintFor(item.value)}
+          itemTextStyle={styles.dropdownItemText}
+        />
 
         <Text style={styles.label}>Problem:</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, styles.textArea]}
           value={problem}
           onChangeText={setProblem}
           placeholder="Describe the problem"
           multiline
+          placeholderTextColor="#000"
         />
 
         <Text style={styles.label}>Date:</Text>
@@ -256,22 +180,6 @@ const ComplaintForm = () => {
               if (selectedDate) setDate(selectedDate);
             }}
           />
-        )}
-
-        <Text style={styles.label}>Location:</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={handleGetLocation} style={styles.button}>
-            <Text style={styles.buttonText}>Get Location</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleOpenMaps} style={styles.button}>
-            <Text style={styles.buttonText}>Open in Maps</Text>
-          </TouchableOpacity>
-        </View>
-
-        {latitude && longitude && (
-          <Text style={styles.locationText}>
-            Latitude: {latitude}, Longitude: {longitude}
-          </Text>
         )}
 
         <Text style={styles.label}>Upload Image:</Text>
@@ -303,109 +211,107 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#fff',
-    color:'#000'
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 4,
-    marginBottom: 16,
-    color: '#000',
-  },
-  dropdownPlaceholder: {
-    color: '#000',  // Black color for placeholder
-  },
-  dropdownSelectedText: {
-    color: '#000',  // Black color for selected text
-  },
-  dropdownItemText: {
-    color: '#000',  // Black color for dropdown items
+    backgroundColor: '#f5f5f5',
   },
   header: {
     alignItems: 'center',
     marginBottom: 20,
-    color:'#000'
   },
   logo: {
     width: 100,
     height: 100,
+    borderRadius: 50,
     marginBottom: 10,
-    color:'#000'
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    color:'#000'
+    color: '#333',
+    textAlign: 'center',
   },
   paragraph: {
-    marginBottom: 15,
-    lineHeight: 20,
-    textAlign: 'center',
-    color: '#333',
-  },
-  steps: {
-    marginBottom: 15,
-    color:'#000'
-  },
-  stepsText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color:'#000'
+    lineHeight: 24,
+    textAlign: 'center',
+    color: '#666',
+    marginBottom: 20,
   },
-  blackText: {
-    color: '#333',
-  },
-  step: {
-    fontSize: 14,
-    marginBottom: 5,
-    color:'#000'
-  },
-  inputContainer: {
-    marginBottom: 15,
-    color:'#000'
+  formContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
+    color: '#333',
     marginBottom: 5,
-    color:'#000'
   },
   input: {
-    height: 40,
-    borderColor: '#ccc',
+    height: 45,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 12,
     marginBottom: 15,
-    backgroundColor: '#f9f9f9',
-    color:'#000'
+    backgroundColor: '#fafafa',
+    color: '#000',
   },
-  picker: {
-    height: 50,
-    borderColor: '#ccc',
+  textArea: {
+    height: 120,
+    textAlignVertical: 'top',
+  },
+  dropdown: {
     borderWidth: 1,
-    borderRadius: 5,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 15,
+    backgroundColor: '#fafafa',
+  },
+  dropdownPlaceholder: {
+    fontSize: 16,
+    color: '#666',
+  },
+  dropdownSelectedText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+  },
+  dateButton: {
+    height: 45,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 15,
+    justifyContent: 'center',
+    backgroundColor: '#fafafa',
+  },
+  dateButtonText: {
+    fontSize: 16,
     color: '#000',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
-    color:'#000'
   },
   button: {
     flex: 1,
+    height: 45,
+    borderRadius: 8,
     backgroundColor: '#007bff',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
+    justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
-    color:'#000'
   },
   buttonText: {
     color: '#fff',
@@ -414,42 +320,21 @@ const styles = StyleSheet.create({
   imagePreview: {
     width: '100%',
     height: 200,
-    borderRadius: 5,
+    borderRadius: 10,
     marginBottom: 15,
-    resizeMode: 'contain',
-    color:'#000'
+    resizeMode: 'cover',
   },
   submitButton: {
+    height: 45,
+    borderRadius: 8,
     backgroundColor: '#28a745',
-    paddingVertical: 15,
-    borderRadius: 5,
+    justifyContent: 'center',
     alignItems: 'center',
-    color:'#000'
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  dateButton: {
-    height: 40,
-    justifyContent: 'center',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    backgroundColor: '#f9f9f9',
-    marginBottom: 15,
-    color:'#000'
-  },
-  dateButtonText: {
     fontSize: 16,
-    color:'#000'
-  },
-  locationText: {
-    marginTop: 5,
-    fontSize: 14,
-    color: '#333',
+    fontWeight: 'bold',
   },
 });
 

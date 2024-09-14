@@ -6,33 +6,15 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../Navigation/types'; // Correct path
 import { useUserRole } from '../Navigation/RootNavigator'; // Adjust the import path as needed
 
-type UserRole = 'guest' | 'front-office' | 'back-office';
-
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [profile, setProfile] = useState<UserRole>('front-office');
-  const [frontOffice, setFrontOffice] = useState(1);
-  const [backOffice, setBackOffice] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { setUserRole } = useUserRole(); // Hook for setting user role
 
-  const profileOptions: { id: string; label: string; value: UserRole }[] = [
-    { id: '1', label: 'Front-Office', value: 'front-office' },
-    { id: '2', label: 'Back-Office', value: 'back-office' },
-  ];
-
-  const handleProfileChange = (value: UserRole) => {
-    setProfile(value);
-    if (value === 'front-office') {
-      setFrontOffice(1);
-      setBackOffice(0);
-    } else if (value === 'back-office') {
-      setFrontOffice(0);
-      setBackOffice(1);
-    }
-  };
+  const frontOffice = 1; // Default value for front office
+  const backOffice = 0; // Not used
 
   const handleSignIn = async () => {
     try {
@@ -54,10 +36,10 @@ const Login: React.FC = () => {
         if (response.ok) {
             await AsyncStorage.setItem('admin_ID', data.admin_ID.toString());
             await AsyncStorage.setItem('office', data.office);
-            await AsyncStorage.setItem('userRole', profile);
+            await AsyncStorage.setItem('userRole', 'front-office'); // Set default role
 
             // Update user role in context
-            setUserRole(profile);
+            setUserRole('front-office');
 
             // Reset the navigation stack to re-render the drawer
             navigation.reset({
@@ -66,18 +48,14 @@ const Login: React.FC = () => {
             });
 
             // Navigate to ComplaintList after resetting the drawer
-            if (profile === 'front-office') {
-                navigation.navigate('ComplaintList');
-            }
+            navigation.navigate('ComplaintList');
         } else {
             Alert.alert('Login Failed', data.message || 'An error occurred. Please try again.');
         }
     } catch (error) {
         Alert.alert('Login Failed', 'An error occurred. Please try again.');
     }
-};
-
-
+  };
 
   return (
     <View style={styles.container}>
@@ -112,21 +90,6 @@ const Login: React.FC = () => {
       <TouchableOpacity>
         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
-      <Text style={styles.label}>Select Profile :</Text>
-      <View style={styles.radioGroup}>
-        {profileOptions.map((option) => (
-          <TouchableOpacity
-            key={option.id}
-            style={[
-              styles.radioButton,
-              profile === option.value && styles.radioButtonSelected,
-            ]}
-            onPress={() => handleProfileChange(option.value)}
-          >
-            <Text style={styles.radioButtonText}>{option.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
       <TouchableOpacity style={styles.button} onPress={handleSignIn}>
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
@@ -206,27 +169,6 @@ const styles = StyleSheet.create({
     color: '#00f',
     textAlign: 'right',
     marginVertical: 10,
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  radioButton: {
-    marginHorizontal: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-  },
-  radioButtonSelected: {
-    backgroundColor: '#008CBA',
-    borderColor: '#008CBA',
-  },
-  radioButtonText: {
-    color: '#333',
   },
   button: {
     backgroundColor: '#008CBA',

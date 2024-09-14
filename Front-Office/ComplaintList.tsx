@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
-import Icon from '../assets/editicon.png'; // Import your icon
+import Icon from '../assets/Editicon.png'; // Import your icon
 import { RootStackParamList } from '../Navigation/types'; // Import the types
+import { Picker } from '@react-native-picker/picker'; // Correct import for Picker
 
 interface Complaint {
   id: string;
@@ -46,6 +47,7 @@ const ComplaintList: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest'); // State for sorting order
 
   useEffect(() => {
     const loadComplaints = async () => {
@@ -63,12 +65,23 @@ const ComplaintList: React.FC = () => {
     loadComplaints();
   }, []);
 
+  useEffect(() => {
+    if (complaints.length > 0) {
+      const sortedComplaints = [...complaints].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return sortOrder === 'newest' ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
+      });
+      setComplaints(sortedComplaints);
+    }
+  }, [sortOrder]);
+
   const handleEdit = (id: string) => {
     navigation.navigate('EditComplaint', { id });
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" style={styles.centered} />;
+    return <ActivityIndicator size="large" color="#007BFF" style={styles.centered} />;
   }
 
   if (error) {
@@ -76,66 +89,109 @@ const ComplaintList: React.FC = () => {
   }
 
   if (complaints.length === 0) {
-    return <Text style={styles.errorText}>No complaints found.</Text>;
+    return <Text style={styles.noComplaintsText}>No complaints found.</Text>;
   }
 
   const renderItem = ({ item }: { item: Complaint }) => (
     <View style={styles.itemContainer}>
-      <Text style={styles.itemText}>Name: {item.name}</Text>
-      <Text style={styles.itemText}>Address: {item.address}</Text>
-      <Text style={styles.itemText}>Problem: {item.problem}</Text>
-      <Text style={styles.itemText}>Date: {item.date}</Text>
-      <TouchableOpacity style={styles.editButton} onPress={() => handleEdit(item.id)}>
-        <Image source={Icon} style={styles.icon} />
-      </TouchableOpacity>
+      <View style={styles.itemHeader}>
+        <Text style={styles.itemTitle}>Complaint ID: {item.id}</Text>
+        <TouchableOpacity style={styles.editButton} onPress={() => handleEdit(item.id)}>
+          <Image source={Icon} style={styles.icon} />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.itemText}>Name: <Text style={styles.itemDetail}>{item.name}</Text></Text>
+      <Text style={styles.itemText}>Address: <Text style={styles.itemDetail}>{item.address}</Text></Text>
+      <Text style={styles.itemText}>Problem: <Text style={styles.itemDetail}>{item.problem}</Text></Text>
+      <Text style={styles.itemText}>Date: <Text style={styles.itemDetail}>{item.date}</Text></Text>
     </View>
   );
 
   return (
-    <FlatList
-      data={complaints}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.container}
-    />
+    <View style={styles.container}>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={sortOrder}
+          style={styles.picker}
+          onValueChange={(itemValue) => setSortOrder(itemValue as 'newest' | 'oldest')}
+        >
+          <Picker.Item label="Sort by Newest" value="newest" />
+          <Picker.Item label="Sort by Oldest" value="oldest" />
+        </Picker>
+      </View>
+      <FlatList
+        data={complaints}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
+    backgroundColor: '#F0F4F8',
+  },
+  pickerContainer: {
+    marginBottom: 20,
+    borderRadius: 8,
     backgroundColor: '#fff',
-    color : '#000'
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  listContainer: {
+    paddingBottom: 20,
   },
   itemContainer: {
     marginBottom: 20,
     padding: 15,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderColor: '#E0E0E0',
     borderWidth: 1,
-    position: 'relative',
-    color : '#000'
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  itemTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000', // Changed to black
   },
   itemText: {
     fontSize: 16,
+    color: '#000', // Changed to black
     marginBottom: 5,
-    color : '#000'
+  },
+  itemDetail: {
+    fontWeight: '600',
+    color: '#000', // Changed to black
   },
   editButton: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    backgroundColor: '#007BFF',
     borderRadius: 50,
     padding: 10,
-    color : '#000'
   },
   icon: {
-    width: 20,
-    height: 20,
-    tintColor: '#fff',
-    color : '#000'
+    width: 40,
+    height: 40,
   },
   errorText: {
     color: 'red',
@@ -143,11 +199,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
   },
+  noComplaintsText: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#000', // Changed to black
+    marginTop: 20,
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    color : '#000'
   },
 });
 

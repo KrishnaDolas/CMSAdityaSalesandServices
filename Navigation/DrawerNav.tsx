@@ -15,12 +15,14 @@ const AppNavigator: React.FC = () => {
   return (
     <Drawer.Navigator drawerContent={(props) => <CustomDrawerContent {...props} />}>
       <Drawer.Screen name="ComplaintForm" component={ComplaintForm} />
-      <Drawer.Screen name="Login" component={Login} />
+      <Drawer.Screen name="Login" component={Login} /> 
+
+      {/* Use React.Fragment to conditionally render screens */}
       {userRole === 'front-office' && (
-        <>
+        <React.Fragment>
           <Drawer.Screen name="ComplaintList" component={ComplaintList} />
           <Drawer.Screen name="EditComplaint" component={EditComplaint} />
-        </>
+        </React.Fragment>
       )}
     </Drawer.Navigator>
   );

@@ -62,14 +62,14 @@ const updateComplaint = async (id: string, updatedComplaint: ComplaintDetails): 
 
     if (updatedComplaint.c_image) {
       formData.append('c_image', {
-        uri: updatedComplaint.c_image, // Assuming c_image is a local file URI
-        type: 'image/jpeg', // Change based on the file type
-        name: 'image.jpg', // Change based on the file name
+        uri: updatedComplaint.c_image,
+        type: 'image/jpeg',
+        name: 'image.jpg',
       });
     }
 
     const response = await fetch(`https://baramatiapi.beatsacademy.in/updatecomplaint/${id}/`, {
-      method: 'PUT', // Changed to PUT method
+      method: 'PUT',
       body: formData,
     });
 
@@ -119,7 +119,7 @@ const EditComplaint: React.FC = () => {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size="large" color="#007BFF" style={styles.centered} />;
   }
 
   if (!complaint) {
@@ -130,87 +130,105 @@ const EditComplaint: React.FC = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Edit Complaint</Text>
 
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.c_name}
-        editable={false}
-      />
-
-      <Text style={styles.label}>Contact Number</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.c_contactno}
-        editable={false}
-      />
-
-      <Text style={styles.label}>Address</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.c_area}
-        editable={false}
-      />
-
-      <Text style={styles.label}>Complaint For</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.complaint_for}
-        editable={false}
-      />
-
-      <Text style={styles.label}>Problem</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.complaint}
-        editable={false}
-      />
-
-      <Text style={styles.label}>Description</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.c_description}
-        editable={true}
-        onChangeText={(text) => setComplaint({ ...complaint, c_description: text })}
-      />
-
-      <Text style={styles.label}>Date</Text>
-      <TextInput
-        style={styles.input}
-        value={complaint.c_time}
-        editable={false}
-      />
-
-      <Text style={styles.label}>Image</Text>
-      {complaint.c_image ? (
-        <Image
-          source={{ uri: complaint.c_image }}
-          style={styles.image}
-          resizeMode="cover"
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.c_name}
+          editable={false}
         />
-      ) : (
-        <Text>No image available</Text>
-      )}
+      </View>
 
-      <Text style={styles.label}>Status</Text>
-      <Dropdown
-        style={styles.dropdown}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        containerStyle={styles.dropdownContainer}
-        labelField="label"
-        valueField="value"
-        data={[
-          { label: 'Work Complete', value: 'WorkComplete' },
-          { label: 'Work In Progress', value: 'WorkInProgress' },
-          { label: 'Work Incomplete', value: 'WorkIncomplete' },
-        ]}
-        value={status}
-        onChange={(item) => setStatus(item.value)}
-        placeholder="Select status"
-      />
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Contact Number</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.c_contactno}
+          editable={false}
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Address</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.c_area}
+          editable={false}
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Complaint For</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.complaint_for}
+          editable={false}
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Problem</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.complaint}
+          editable={false}
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.c_description}
+          editable={true}
+          onChangeText={(text) => setComplaint({ ...complaint, c_description: text })}
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Date</Text>
+        <TextInput
+          style={styles.input}
+          value={complaint.c_time}
+          editable={false}
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Image</Text>
+        {complaint.c_image ? (
+          <Image
+            source={{ uri: complaint.c_image }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text>No image available</Text>
+        )}
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Status</Text>
+        <Dropdown
+          style={styles.dropdown}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          containerStyle={styles.dropdownContainer}
+          labelField="label"
+          valueField="value"
+          data={[
+            { label: 'Work Complete', value: 'WorkComplete' },
+            { label: 'Work In Progress', value: 'WorkInProgress' },
+            { label: 'Work Incomplete', value: 'WorkIncomplete' },
+          ]}
+          value={status}
+          onChange={(item) => setStatus(item.value)}
+          placeholder="Select status"
+        />
+      </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="Update Complaint" onPress={handleUpdate} />
+        <Button title="Update Complaint" onPress={handleUpdate} color="#007BFF" />
       </View>
     </ScrollView>
   );
@@ -220,65 +238,70 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
   },
   heading: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#000',
+    marginBottom: 20,
+    color: '#333',
+    textAlign: 'center',
+  },
+  fieldContainer: {
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#333',
     marginBottom: 5,
-    color: '#000',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    borderRadius: 5,
-    marginBottom: 20,
-    backgroundColor: '#f9f9f9',
-    color: '#000',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    color: '#333',
   },
   dropdown: {
     height: 50,
     borderWidth: 1,
     borderColor: '#ccc',
-    backgroundColor: '#f9f9f9',
-    marginBottom: 60, // Adding space below the dropdown
-    paddingBottom: 10, // Extra padding at the bottom if needed
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
   },
   placeholderStyle: {
-    color: '#000',
+    color: '#333',
   },
   selectedTextStyle: {
-    color: '#000',
+    color: '#333',
   },
   dropdownContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 20, // Adding space below the dropdown
-    paddingBottom: 10, // Extra padding at the bottom if needed
+    borderRadius: 8,
   },
   image: {
     width: '100%',
     height: 200,
     borderRadius: 10,
+    marginTop: 10,
     marginBottom: 20,
   },
   buttonContainer: {
-    marginTop: 20, // Space for the button
-    marginBottom: 20, 
+    marginTop: 30,
+    marginBottom: 20,
   },
   errorText: {
     color: 'red',
     textAlign: 'center',
+    fontSize: 18,
     marginTop: 20,
-    fontSize: 16,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
