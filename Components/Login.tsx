@@ -73,6 +73,7 @@ const Login: React.FC = () => {
         placeholder="Enter your username"
         value={username}
         onChangeText={setUsername}
+        placeholderTextColor="#000"
       />
       <Text style={styles.label}>Password</Text>
       <View style={styles.passwordContainer}>
@@ -82,14 +83,12 @@ const Login: React.FC = () => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry={!showPassword}
+          placeholderTextColor="#000"
         />
         <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
           {/* Eye icon implementation */}
         </TouchableOpacity>
       </View>
-      <TouchableOpacity>
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-      </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleSignIn}>
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
@@ -137,10 +136,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     marginVertical: 20,
+    color : '#000'
   },
   label: {
     fontSize: 16,
-    color: '#333',
+    color: '#000',
     marginVertical: 10,
   },
   input: {
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
     width: '100%',
+    color:'#000'
   },
   passwordContainer: {
     flexDirection: 'row',

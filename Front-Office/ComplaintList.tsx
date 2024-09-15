@@ -114,6 +114,7 @@ const ComplaintList: React.FC = () => {
           selectedValue={sortOrder}
           style={styles.picker}
           onValueChange={(itemValue) => setSortOrder(itemValue as 'newest' | 'oldest')}
+          itemStyle={{ color: '#000' }} // Ensures the picker items have black text
         >
           <Picker.Item label="Sort by Newest" value="newest" />
           <Picker.Item label="Sort by Oldest" value="oldest" />
@@ -148,6 +149,7 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
+    color: '#000', // Black color for selected item text
   },
   listContainer: {
     paddingBottom: 20,
@@ -190,8 +192,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   icon: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
   },
   errorText: {
     color: 'red',

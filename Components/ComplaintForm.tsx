@@ -142,19 +142,25 @@ const ComplaintForm = () => {
           placeholderTextColor="#000"
         />
 
-        <Text style={styles.label}>Complaint For:</Text>
-        <Dropdown
-          style={styles.dropdown}
-          data={complaintOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Select Complaint For"
-          placeholderStyle={styles.dropdownPlaceholder}
-          selectedTextStyle={styles.dropdownSelectedText}
-          value={complaintFor}
-          onChange={(item) => setComplaintFor(item.value)}
-          itemTextStyle={styles.dropdownItemText}
-        />
+<Text style={styles.label}>Complaint For:</Text>
+<Dropdown
+  style={styles.dropdown}
+  data={complaintOptions}
+  labelField="label"
+  valueField="value"
+  placeholder="Select Complaint For"
+  placeholderStyle={styles.dropdownPlaceholder}
+  selectedTextStyle={styles.dropdownSelectedText}
+  value={complaintFor}
+  onChange={(item) => setComplaintFor(item.value)}
+  renderItem={(item) => (
+    <View style={styles.dropdownItem}>
+      <Text style={styles.dropdownItemText}>{item.label}</Text>
+    </View>
+  )}
+/>
+
+
 
         <Text style={styles.label}>Problem:</Text>
         <TextInput
@@ -282,8 +288,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
   },
+  dropdownItem: {
+    padding: 10, // Style for each dropdown item
+  },
   dropdownItemText: {
     fontSize: 16,
+    color: '#000', // Set dropdown item text color to black
   },
   dateButton: {
     height: 45,

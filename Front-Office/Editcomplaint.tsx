@@ -224,6 +224,11 @@ const EditComplaint: React.FC = () => {
           value={status}
           onChange={(item) => setStatus(item.value)}
           placeholder="Select status"
+          renderItem={(item) => (
+            <View style={styles.dropdownItem}>
+              <Text style={styles.dropdownItemText}>{item.label}</Text>
+            </View>
+          )}
         />
       </View>
 
@@ -262,7 +267,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     backgroundColor: '#fff',
-    color: '#333',
+    color: '#000',
   },
   dropdown: {
     height: 50,
@@ -281,27 +286,30 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderRadius: 8,
   },
+  dropdownItem: {
+    padding: 10,
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#000', // Black color for dropdown items
+  },
   image: {
     width: '100%',
     height: 200,
-    borderRadius: 10,
-    marginTop: 10,
-    marginBottom: 20,
+    borderRadius: 8,
   },
   buttonContainer: {
-    marginTop: 30,
-    marginBottom: 20,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    fontSize: 18,
     marginTop: 20,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorText: {
+    textAlign: 'center',
+    color: 'red',
+    fontSize: 18,
   },
 });
 
