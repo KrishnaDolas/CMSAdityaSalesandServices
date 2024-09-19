@@ -1,3 +1,4 @@
+// CustomDrawerContent.tsx
 import React from 'react';
 import { View, Text, Image, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,15 +20,12 @@ const getUserIcon = (role: UserRole) => {
 };
 
 const CustomDrawerContent: React.FC<any> = (props) => {
-  const { userRole, setUserRole } = useUserRole(); // Added setUserRole for logout
+  const { userRole, setUserRole } = useUserRole();
 
   const logout = async () => {
     try {
-      // Clear AsyncStorage
       await AsyncStorage.clear();
-      // Reset user role to guest
       setUserRole('guest');
-      // Navigate to Login screen
       props.navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', 'Failed to logout. Please try again.');
@@ -46,7 +44,7 @@ const CustomDrawerContent: React.FC<any> = (props) => {
 
         <View style={styles.drawerItems}>
           <DrawerItemList {...props} />
-          
+
           {userRole === 'admin' && (
             <View style={styles.adminSection}>
               <DrawerItem 

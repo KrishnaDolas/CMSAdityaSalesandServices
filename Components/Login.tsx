@@ -18,44 +18,43 @@ const Login: React.FC = () => {
 
   const handleSignIn = async () => {
     try {
-        const response = await fetch('https://baramatiapi.beatsacademy.in/complaintlogin/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                password,
-                front_office: frontOffice,
-                back_office: backOffice,
-            }),
+      const response = await fetch('https://baramatiapi.beatsacademy.in/complaintlogin/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          front_office: frontOffice,
+          back_office: backOffice,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        // Save user-related information in AsyncStorage
+        await AsyncStorage.setItem('admin_ID', data.admin_ID.toString());
+        await AsyncStorage.setItem('office', data.office);
+        await AsyncStorage.setItem('userRole', 'front-office'); // Set default role
+  
+        // Update user role in context
+        setUserRole('front-office');
+  
+        // Reset the navigation stack to render the new role-based drawer and navigate to ComplaintStack
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'ComplaintStack' }], // Reset stack to ComplaintStack, which contains ComplaintList
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            await AsyncStorage.setItem('admin_ID', data.admin_ID.toString());
-            await AsyncStorage.setItem('office', data.office);
-            await AsyncStorage.setItem('userRole', 'front-office'); // Set default role
-
-            // Update user role in context
-            setUserRole('front-office');
-
-            // Reset the navigation stack to re-render the drawer
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'ComplaintForm' }], // Reset to a root screen
-            });
-
-            // Navigate to ComplaintList after resetting the drawer
-            navigation.navigate('ComplaintList');
-        } else {
-            Alert.alert('Login Failed', data.message || 'An error occurred. Please try again.');
-        }
+      } else {
+        Alert.alert('Login Failed', data.message || 'An error occurred. Please try again.');
+      }
     } catch (error) {
-        Alert.alert('Login Failed', 'An error occurred. Please try again.');
+      Alert.alert('Login Failed', 'An error occurred. Please try again.');
     }
   };
+  
 
   return (
     <View style={styles.container}>
